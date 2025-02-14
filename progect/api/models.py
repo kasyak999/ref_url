@@ -1,19 +1,31 @@
 import uuid
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.utils import timezone
-
-
-User = get_user_model()
+from django.contrib.auth.models import AbstractUser
 
 
 def generate_referral_code():
     return str(uuid.uuid4())[:10]
 
 
+class UserProfile(AbstractUser):
+    code = models.ForeignKey(
+        'ReferralCode', on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    class Meta:
+        """Перевод модели"""
+        verbose_name = 'пользователя'
+        verbose_name_plural = 'Пользователи'
+        ordering = ('username',)
+
+    def __str__(self):
+        return self.username
+
+
 class ReferralCode(models.Model):
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, verbose_name='Пользователь')
+        UserProfile, on_delete=models.CASCADE, verbose_name='Пользователь')
     code = models.CharField(
         max_length=10, unique=True, default=generate_referral_code,
         verbose_name='Код')

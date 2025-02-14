@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import ReferralCode
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 
 
 User = get_user_model()
@@ -61,3 +62,31 @@ class ReferralCreateSerializer(serializers.ModelSerializer):
         validated_data['expires_at'] = timezone.now() + timezone.timedelta(
             days=days_valid)
         return super().create(validated_data)
+
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    """Регистрация пользователя"""
+    referral_code = serializers.CharField(required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'referral_code']
+
+    def validate_referral_code(self, value):
+        if value:
+            try:
+                ReferralCode.objects.get(code=value)
+            except ReferralCode.DoesNotExist:
+                raise serializers.ValidationError("Неверный реферальный код.")
+        return value
+
+    def create(self, validated_data):
+        referral_code = validated_data.pop('referral_code', None)
+        user = super().create(validated_data)
+        password = validated_data.pop('password')
+        if referral_code:
+            referral = ReferralCode.objects.get(code=referral_code)
+            user.code = referral
+        user.set_password(password)
+        user.save()
+        return user

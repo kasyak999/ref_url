@@ -1,11 +1,9 @@
 from rest_framework import permissions, viewsets, mixins
 from rest_framework.response import Response
-from django.utils import timezone
-from .models import ReferralCode
-from .serializers import ReferralCodeSerializer, ReferralCreateSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
-from django.shortcuts import get_object_or_404
+from .models import ReferralCode
+from .serializers import ReferralCodeSerializer, ReferralCreateSerializer
 
 
 User = get_user_model()
