@@ -8,7 +8,7 @@ User = get_user_model()
 
 @admin.register(User)
 class UsersryAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('pk', 'username')
 
 
 @admin.register(ReferralCode)

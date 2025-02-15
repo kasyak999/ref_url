@@ -22,14 +22,11 @@ class ReferralCodeSerializer(serializers.ModelSerializer):
         if not user:
             raise serializers.ValidationError(
                 "Пользователь с таким email не найден.")
-
         referral_code = ReferralCode.objects.filter(
             user=user, expires_at__gt=timezone.now()).first()
         if not referral_code:
             raise serializers.ValidationError(
                 "У пользователя нет активного реферального кода.")
-
-        # Сохраняем объект кода для использования в `to_representation`
         self.referral_code = referral_code
         return value
 
@@ -63,6 +60,12 @@ class ReferralCreateSerializer(serializers.ModelSerializer):
             days=days_valid)
         return super().create(validated_data)
 
+    # def to_representation(self, instance):
+    #     print(instance.code)
+    #     data = super().to_representation(instance)
+    #     data['code'] = instance.code
+    #     return data
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Регистрация пользователя"""
@@ -73,20 +76,24 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'referral_code']
 
     def validate_referral_code(self, value):
-        if value:
-            try:
-                ReferralCode.objects.get(code=value)
-            except ReferralCode.DoesNotExist:
-                raise serializers.ValidationError("Неверный реферальный код.")
-        return value
+        try:
+            referral = ReferralCode.objects.get(code=value)
+            return referral.user
+        except ReferralCode.DoesNotExist:
+            raise serializers.ValidationError("Неверный реферальный код.")
 
     def create(self, validated_data):
         referral_code = validated_data.pop('referral_code', None)
         user = super().create(validated_data)
         password = validated_data.pop('password')
         if referral_code:
-            referral = ReferralCode.objects.get(code=referral_code)
-            user.code = referral
+            user.referrer = referral_code
         user.set_password(password)
         user.save()
         return user
+
+
+class ReferralSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username',]

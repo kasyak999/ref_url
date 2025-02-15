@@ -9,8 +9,8 @@ def generate_referral_code():
 
 
 class UserProfile(AbstractUser):
-    code = models.ForeignKey(
-        'ReferralCode', on_delete=models.SET_NULL, null=True, blank=True
+    referrer = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals'
     )
 
     class Meta:

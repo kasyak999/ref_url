@@ -3,7 +3,9 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import action
 from .models import ReferralCode
-from .serializers import ReferralCodeSerializer, ReferralCreateSerializer
+from .serializers import (
+    ReferralCodeSerializer, ReferralCreateSerializer, ReferralSerializer)
+from rest_framework.views import APIView
 
 
 User = get_user_model()
@@ -37,3 +39,13 @@ class CodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
             return Response({"error": "У вас нет активного кода."}, status=400)
         referral_code.delete()
         return Response({"message": "Реферальный код удалён."}, status=204)
+
+
+class ReferralListView(APIView):
+    """Список рефералов"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, pk):
+        user = User.objects.filter(referrer__id=pk)
+        serializer = ReferralSerializer(user, many=True)
+        return Response(serializer.data)
