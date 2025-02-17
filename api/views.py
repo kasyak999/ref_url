@@ -12,7 +12,7 @@ User = get_user_model()
 
 
 class CodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
-    """ViewSet для управления реферальными кодами"""
+    """Создание реферального кода"""
     queryset = ReferralCode.objects.all()
     serializer_class = ReferralCreateSerializer
 
@@ -25,7 +25,7 @@ class CodeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
         permission_classes=[permissions.AllowAny]
     )
     def code(self, request):
-        """Получение кода"""
+        """Получение кода по email пользователя"""
         serializer = ReferralCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data)

@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class ReferralCodeSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(write_only=True)
+    email = serializers.EmailField()
     code = serializers.CharField(read_only=True)
 
     class Meta:
@@ -40,11 +40,11 @@ class ReferralCodeSerializer(serializers.ModelSerializer):
 class ReferralCreateSerializer(serializers.ModelSerializer):
     """Создание реферального кода"""
     days_valid = serializers.IntegerField(
-        min_value=1, max_value=365, write_only=True)
+        min_value=1, max_value=150, write_only=True)
 
     class Meta:
         model = ReferralCode
-        fields = ['days_valid']
+        fields = ['days_valid',]
 
     def validate(self, attrs):
         """Проверяет, есть ли у пользователя уже активный реферальный код."""
@@ -59,12 +59,6 @@ class ReferralCreateSerializer(serializers.ModelSerializer):
         validated_data['expires_at'] = timezone.now() + timezone.timedelta(
             days=days_valid)
         return super().create(validated_data)
-
-    # def to_representation(self, instance):
-    #     print(instance.code)
-    #     data = super().to_representation(instance)
-    #     data['code'] = instance.code
-    #     return data
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
